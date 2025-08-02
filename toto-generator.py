@@ -53,8 +53,7 @@ def generate_multiple_sets(count=6):
 def main():
     """Main function - can be called with different modes"""
 
-    numbers = generate_toto_numbers()
-    result = format_toto_output(numbers)
+    result = generate_multiple_sets()
 
     # Output as JSON for easy parsing
     print(json.dumps(result, indent=2))
