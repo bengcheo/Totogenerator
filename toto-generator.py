@@ -1,8 +1,6 @@
 import random
 import json
 from datetime import datetime
-import sys
-
 
 def generate_toto_numbers():
     """Generate 6 unique random numbers from 1-49 for Singapore Toto"""
@@ -23,7 +21,6 @@ def format_toto_output(numbers):
         "date": today,
         "timestamp": datetime.now().isoformat(),
         "numbers": numbers,
-        "additional_number": additional,
         "formatted": formatted_numbers,
         "message": message
     }
