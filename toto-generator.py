@@ -10,7 +10,7 @@ def generate_toto_numbers():
     numbers.sort()  # Sort for better readability
     return numbers
 
-def format_toto_output(numbers, additional=None):
+def format_toto_output(numbers):
     """Format Toto numbers for display"""
     today = datetime.now().strftime("%Y-%m-%d")
     formatted_numbers = " - ".join(map(str, numbers))
@@ -29,7 +29,7 @@ def format_toto_output(numbers, additional=None):
     }
 
 
-def generate_multiple_sets(count=1):
+def generate_multiple_sets(count=6):
     """Generate multiple sets of Toto numbers"""
     if count > 10:
         count = 10  # Limit to prevent excessive generation
