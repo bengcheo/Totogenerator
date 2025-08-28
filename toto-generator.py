@@ -52,9 +52,11 @@ def main():
 
     result = generate_multiple_sets()
 
-    # Output as JSON for easy parsing
     print(json.dumps(result, indent=2))
-    return result
+
+    # Save to file for Telegram script to read
+    with open('toto_numbers.json', 'w') as f:
+        json.dump(result, f, indent=2)
 
 
 if __name__ == "__main__":
