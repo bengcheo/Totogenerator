@@ -12,7 +12,7 @@ def generate_toto_numbers():
     return numbers
 
 
-def generate_multiple_sets(count=6):
+def generate_multiple_sets(count=1):
     """Generate multiple sets of Toto numbers"""
     if count > 10:
         count = 10  # Limit to prevent excessive generation
