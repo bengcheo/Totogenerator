@@ -43,7 +43,6 @@ def create_telegram_message(toto_data):
         message += f"*Set {set_data['set']}:* `{set_data['formatted']}`\n"
 
     message += f"\n🍀 Good luck with all {toto_data['total_sets']} sets!"
-    message += f"\n💡 Remember to play responsibly"
 
     return message
 
