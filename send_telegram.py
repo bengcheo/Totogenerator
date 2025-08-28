@@ -8,8 +8,15 @@ def load_toto_numbers():
     """Load generated TOTO numbers from file"""
     try:
         with open('toto_numbers.json', 'r') as f:
-            return json.load(f)
+            data = json.load(f)
+            print(f"✅ Loaded TOTO numbers: {data['total_sets']} sets")
+            return data
     except FileNotFoundError:
+        print("❌ toto_numbers.json file not found!")
+        print("Make sure main.py ran successfully before this script")
+        return None
+    except json.JSONDecodeError:
+        print("❌ Invalid JSON in toto_numbers.json")
         return None
 
 
@@ -19,12 +26,14 @@ def create_telegram_message(toto_data):
         return "❌ No TOTO numbers were generated."
 
     message = f"🎲 *Your Daily TOTO Numbers*\n"
-    message += f"📅 Generated: {toto_data['date']}\n\n"
+    message += f"📅 Date: {toto_data['date']}\n"
+    message += f"🎯 Total Sets: {toto_data['total_sets']}\n\n"
 
     for set_data in toto_data['sets']:
+        # Use the pre-formatted string from your JSON
         message += f"*Set {set_data['set']}:* `{set_data['formatted']}`\n"
 
-    message += f"\n🍀 Good luck with your {toto_data['total_sets']} sets!"
+    message += f"\n🍀 Good luck with all {toto_data['total_sets']} sets!"
     message += f"\n💡 Remember to play responsibly"
 
     return message
