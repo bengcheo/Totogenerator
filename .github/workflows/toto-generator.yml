@@ -25,17 +25,10 @@ jobs:
     - name: Install Python dependencies
       run: pip install requests
 
-    - name: Generate TOTO numbers
-      run: |
-        echo "🎲 Generating TOTO numbers..."
-        python toto-generator.py
-        echo "📄 Checking if file was created..."
-        ls -la toto_numbers.json
-
-    - name: Send Telegram notification
+    - name: Generate TOTO numbers and send to Telegram
       env:
         TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
         TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
       run: |
-        echo "📱 Sending Telegram notification..."
-        python send_telegram.py
+        echo "🎲 Running TOTO system..."
+        python run_toto_system.py
