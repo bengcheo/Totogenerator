@@ -23,7 +23,7 @@ jobs:
         python-version: '3.11'
         
     - name: Generate TOTO numbers
-      run: python main.py
+      run: python toto-generator.py
       
     - name: Send email notification
       env:
