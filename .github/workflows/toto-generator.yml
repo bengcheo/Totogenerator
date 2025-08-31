@@ -3,14 +3,20 @@ name: TOTO Number Generator
 
 on:
   schedule:
-    # Run every day at 4:00 PM SGT (10:00 AM UTC)
-    - cron: '0 8 * * *'
+    # Generate 1 set daily at 12 PM SGT (4 AM UTC)
+    - cron: '0 4 * * *'
 
-  # Allow manual trigger
+  # Manual trigger with number input
   workflow_dispatch:
+    inputs:
+      sets:
+        description: 'Number of TOTO sets to generate (1-10)'
+        required: true
+        default: '1'
+        type: string
 
 jobs:
-  generate-toto-numbers:
+  generate-toto:
     runs-on: ubuntu-latest
 
     steps:
@@ -22,13 +28,18 @@ jobs:
       with:
         python-version: '3.11'
 
-    - name: Install Python dependencies
+    - name: Install dependencies
       run: pip install requests
 
-    - name: Generate TOTO numbers and send to Telegram
+    - name: Generate TOTO numbers
       env:
         TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
         TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
       run: |
-        echo "🎲 Running TOTO system..."
-        python toto-generator.py
+        if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+          echo "🎲 Manual trigger with ${{ inputs.sets }} sets"
+          python toto-generator.py "${{ inputs.sets }}"
+        else
+          echo "🎲 Scheduled run at 12 PM SGT - generating 1 set"
+          python toto-generator.py 1
+        fi
