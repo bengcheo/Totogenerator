@@ -134,12 +134,12 @@ def main():
     # Check if a number was passed as command line argument
     if len(sys.argv) > 1:
         count_input = sys.argv[1]
-        print(f"📥 Input received: {count_input}")
+        print(f"📥 Manual input received: {count_input}")
         generate_toto.generate_numbers(count_input)
     else:
-        # No input, use default (1 set)
-        print("📥 No input provided, using default (1 set)")
-        generate_toto.generate_numbers()
+        # No input, use default (1 set) - for scheduled runs
+        print("📥 Scheduled run - generating 1 set")
+        generate_toto.generate_numbers(1)
 
 
 if __name__ == "__main__":

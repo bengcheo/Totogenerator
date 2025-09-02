@@ -6,11 +6,11 @@ on:
     # Generate 1 set daily at 12 PM SGT (4 AM UTC)
     - cron: '0 4 * * *'
 
-  # Manual trigger with number input
+  # Manual trigger - input a number to generate that many sets
   workflow_dispatch:
     inputs:
       sets:
-        description: 'Number of TOTO sets to generate (1-10)'
+        description: 'Number of TOTO sets to generate from 1 to 10'
         required: true
         default: '1'
         type: string
@@ -37,9 +37,9 @@ jobs:
         TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
       run: |
         if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-          echo "🎲 Manual trigger with ${{ inputs.sets }} sets"
+          echo "🎲 Manual trigger: generating ${{ inputs.sets }} sets"
           python toto-generator.py "${{ inputs.sets }}"
         else
-          echo "🎲 Scheduled run at 12 PM SGT - generating 1 set"
-          python toto-generator.py 1
+          echo "📅 Scheduled run: generating 1 set at 12 PM SGT"
+          python toto-generator.py
         fi
