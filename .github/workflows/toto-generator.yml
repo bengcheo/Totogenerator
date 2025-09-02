@@ -5,8 +5,8 @@ on:
   schedule:
     # Check for Telegram messages and generate at 12 PM SGT (4 AM UTC)
     - cron: '0 4 * * *'
-    # Also check every few hours during active times
-    - cron: '0 8,12,16 * * *'  # 4 PM, 8 PM, 12 AM SGT
+    # Check every 15 minutes during active hours (8 AM - 11 PM SGT)
+    - cron: '*/15 0-15 * * *'
 
   # Manual trigger - direct input (bypass Telegram)
   workflow_dispatch:
