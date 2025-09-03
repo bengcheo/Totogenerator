@@ -1,5 +1,7 @@
 import random
 import json
+from sys import setswitchinterval
+
 import requests
 import os
 import sys
@@ -56,7 +58,13 @@ class TotoGenerator:
         for set_data in toto_data['sets']:
             message += f"*Set {set_data['set']}:* `{set_data['formatted']}`\n"
 
-        message += f"\n🍀 Good luck with all {toto_data['total_sets']} sets!"
+        output_txt = ''
+        if toto_data['sets'] > 1:
+            output_txt = 'sets'
+        else:
+            output_txt = 'set'
+
+        message += f"\n🍀 Good luck with all {toto_data['total_sets']} {output_txt}!"
         return message
 
     def send_to_telegram(self, toto_data):
