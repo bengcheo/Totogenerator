@@ -6,12 +6,14 @@ import requests
 import os
 import sys
 from datetime import datetime
+from config import Config
 
 
 class TotoGenerator:
     def __init__(self):
-        self.bot_token = os.getenv('TELEGRAM_BOT_TOKEN')
-        self.chat_id = os.getenv('TELEGRAM_CHAT_ID')
+        self.bot_token = Config.BOT_TOKEN
+        self.chat_id = Config.CHAT_ID
+        self.api_url = Config.get_telegram_api_url()
 
     def generate_toto_numbers(self):
         """Generate 6 unique random numbers from 1-49 for Singapore Toto"""

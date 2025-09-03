@@ -3,14 +3,14 @@ import os
 import subprocess
 import sys
 from datetime import datetime
-
+from config import Config
 
 class TelegramListener:
     def __init__(self):
-        self.bot_token = os.getenv('TELEGRAM_BOT_TOKEN')
-        self.chat_id = os.getenv('TELEGRAM_CHAT_ID')
-        self.api_url = f"https://api.telegram.org/bot{self.bot_token}"
-        self.last_update_file = "/tmp/last_update_id.txt"
+        self.bot_token = Config.BOT_TOKEN
+        self.chat_id = Config.CHAT_ID
+        self.api_url = Config.get_telegram_api_url()
+        self.last_update_file = Config.LAST_UPDATE_FILE
 
     def get_last_update_id(self):
         """Get the last processed update ID"""
