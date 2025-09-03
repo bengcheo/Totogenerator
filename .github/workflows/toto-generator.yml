@@ -40,14 +40,10 @@ jobs:
         if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
           echo "Manual trigger: generating ${{ inputs.sets }} sets"
           python toto-generator.py "${{ inputs.sets }}"
-        elif [ "${{ github.event_name }}" = "schedule" ]; then
-          HOUR=$(date -u +%H)
-          MINUTE=$(date -u +%M)
-          if [ "$HOUR" -eq 4 ] && [ "$MINUTE" -eq 0 ]; then
-            echo "Daily 12 PM SGT: generating standard 1 set"
-            python toto-generator.py 1
-          else
-            echo "15-minute check: looking for Telegram messages"
-            python telegram_listener.py
-          fi
+        elif [ "${{ github.event.schedule }}" = "0 4 * * *" ]; then
+          echo "Daily 12 PM SGT: generating standard 1 set"
+          python toto-generator.py 1
+        else
+          echo "15-minute check: looking for Telegram messages only"
+          python telegram_listener_check_only.py
         fi

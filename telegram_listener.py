@@ -195,7 +195,7 @@ Send me a number from 1 to 10:
 
 
 def main():
-    """Main function"""
+    """Main function - CHECK ONLY, NO FALLBACK GENERATION"""
     if not os.getenv('TELEGRAM_BOT_TOKEN') or not os.getenv('TELEGRAM_CHAT_ID'):
         print("Missing Telegram credentials")
         sys.exit(1)
@@ -205,8 +205,8 @@ def main():
     had_messages = listener.process_telegram_messages()
 
     if not had_messages:
-        print("No TOTO requests found, doing nothing")
-        # Remove this line: listener.run_toto_generator('1')
+        print("No TOTO requests found - doing nothing (check only mode)")
+        # NO fallback generation here
 
 
 if __name__ == "__main__":
