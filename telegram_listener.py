@@ -4,9 +4,6 @@ import subprocess
 import sys
 from datetime import datetime
 
-import telegram_listener
-
-
 class TelegramListener:
     def __init__(self):
         self.bot_token = os.getenv('TELEGRAM_BOT_TOKEN')

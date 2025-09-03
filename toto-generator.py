@@ -5,6 +5,7 @@ import os
 import sys
 from datetime import datetime
 
+import telegram_listener
 
 class InteractiveTotoBot:
     def __init__(self):
@@ -134,7 +135,7 @@ def main():
         print("Make sure TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID are set")
         sys.exit(1)
 
-    listener = TelegramListener()
+    listener = telegram_listener.TelegramListener()
 
     # Check for messages and process them
     had_messages = listener.process_telegram_messages()
