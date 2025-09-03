@@ -45,5 +45,5 @@ jobs:
           python toto-generator.py 1
         else
           echo "15-minute check: looking for Telegram messages only"
-          python telegram_listener_check_only.py
+          python telegram_listener.py
         fi
