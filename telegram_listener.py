@@ -205,8 +205,8 @@ def main():
     had_messages = listener.process_telegram_messages()
 
     if not had_messages:
-        print("No TOTO requests found, running scheduled generation...")
-        listener.run_toto_generator('1')
+        print("No TOTO requests found, doing nothing")
+        # Remove this line: listener.run_toto_generator('1')
 
 
 if __name__ == "__main__":
