@@ -128,18 +128,19 @@ class InteractiveTotoBot:
 
 
 def main():
-    """Main function that can accept command line arguments"""
-    generate_toto = InteractiveTotoBot()
+    """Main function"""
+    if not os.getenv('TELEGRAM_BOT_TOKEN') or not os.getenv('TELEGRAM_CHAT_ID'):
+        print("❌ Missing Telegram credentials")
+        print("Make sure TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID are set")
+        sys.exit(1)
 
-    # Check if a number was passed as command line argument
-    if len(sys.argv) > 1:
-        count_input = sys.argv[1]
-        print(f"📥 Manual input received: {count_input}")
-        generate_toto.generate_numbers(count_input)
-    else:
-        # No input, use default (1 set) - for scheduled runs
-        print("📥 Scheduled run - generating 1 set")
-        generate_toto.generate_numbers(1)
+    listener = TelegramListener()
+
+    # Check for messages and process them
+    had_messages = listener.process_telegram_messages()
+
+    if not had_messages:
+        print("📭 No new TOTO requests from Telegram. Doing nothing.")
 
 
 if __name__ == "__main__":
