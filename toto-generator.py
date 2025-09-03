@@ -58,11 +58,7 @@ class TotoGenerator:
         for set_data in toto_data['sets']:
             message += f"*Set {set_data['set']}:* `{set_data['formatted']}`\n"
 
-        output_txt = ''
-        if toto_data['sets'] > 1:
-            output_txt = 'sets'
-        else:
-            output_txt = 'set'
+        output_txt = 'sets' if toto_data['total_sets'] > 1 else 'set'
 
         message += f"\n🍀 Good luck with all {toto_data['total_sets']} {output_txt}!"
         return message
