@@ -62,15 +62,23 @@ class TelegramListener:
             print(f"Error getting messages: {e}")
             return []
 
-    def is_recent_message(self, message_timestamp, max_age_minutes=30):
+    def is_recent_message(self, message_timestamp, max_age_minutes=240):  # Changed: 30 → 240 (4 hours)
         """Check if message is recent enough to process"""
         try:
-            message_time = datetime.fromtimestamp(message_timestamp, tz=timezone.utc)
-            current_time = datetime.now(timezone.utc)
+            message_time = datetime.fromtimestamp(message_timestamp)
+            current_time = datetime.now()
             age = current_time - message_time
 
+            # Added: Debug logging
+            age_minutes = age.total_seconds() / 60
+            print(f"Message timestamp: {message_timestamp}")
+            print(f"Message time: {message_time}")
+            print(f"Current time: {current_time}")
+            print(f"Age: {age_minutes:.1f} minutes (limit: {max_age_minutes})")
+
             return age.total_seconds() <= (max_age_minutes * 60)
-        except:
+        except Exception as e:  # Changed: bare except → specific exception
+            print(f"Error checking message age: {e}")  # Added: error logging
             return True
 
     def send_response(self, text, reply_to_message_id=None):
