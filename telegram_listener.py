@@ -37,8 +37,7 @@ class TelegramListener:
 
             url = f"{self.api_url}/getUpdates"
             params = {
-                'offset': last_update_id + 1,
-                'limit': 5,
+                'limit': 1,
                 'timeout': 10
             }
 
