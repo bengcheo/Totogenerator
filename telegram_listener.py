@@ -31,13 +31,10 @@ class TelegramListener:
             print(f"Warning: Could not save update ID: {e}")
 
     def get_new_messages(self):
-        """Get new messages since last check"""
         try:
-            last_update_id = self.get_last_update_id()
-
             url = f"{self.api_url}/getUpdates"
             params = {
-                'limit': 1,
+                'limit': 100,  # Increase to see more messages
                 'timeout': 10
             }
 
@@ -45,18 +42,17 @@ class TelegramListener:
 
             if response.status_code == 200:
                 data = response.json()
-
                 if data.get('ok') and data.get('result'):
                     messages = data['result']
-
-                    if messages:
-                        latest_update_id = messages[-1]['update_id']
-                        self.save_last_update_id(latest_update_id)
-
+                    print(f"DEBUG: Found {len(messages)} total messages")
+                    for i, msg in enumerate(messages):
+                        if 'message' in msg:
+                            text = msg['message'].get('text', '')
+                            update_id = msg.get('update_id')
+                            date = msg['message'].get('date', 0)
+                            print(f"Message {i}: update_id={update_id}, text='{text}', timestamp={date}")
                     return messages
-
             return []
-
         except Exception as e:
             print(f"Error getting messages: {e}")
             return []
