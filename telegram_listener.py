@@ -163,7 +163,7 @@ class TelegramListener:
             if not message_text:
                 continue
 
-            if not self.is_recent_message(message_date, max_age_minutes=30):
+            if not self.is_recent_message(message_date):
                 print(f"Skipping old message: '{message_text}'")
                 continue
 
