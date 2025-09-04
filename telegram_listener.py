@@ -2,7 +2,7 @@ import requests
 import os
 import subprocess
 import sys
-from datetime import datetime
+from datetime import datetime, timezone
 from config import Config
 
 class TelegramListener:
@@ -65,8 +65,8 @@ class TelegramListener:
     def is_recent_message(self, message_timestamp, max_age_minutes=30):
         """Check if message is recent enough to process"""
         try:
-            message_time = datetime.fromtimestamp(message_timestamp)
-            current_time = datetime.now()
+            message_time = datetime.fromtimestamp(message_timestamp, tz=timezone.utc)
+            current_time = datetime.now(timezone.utc)
             age = current_time - message_time
 
             return age.total_seconds() <= (max_age_minutes * 60)
