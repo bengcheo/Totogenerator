@@ -64,7 +64,7 @@ class TelegramListener:
 
     def is_recent_message(self, message_timestamp, max_age_minutes=240):
         try:
-            # Ensure both times are in UTC
+            # Ensure both times are in UTC, check for latest messages
             message_time = datetime.fromtimestamp(message_timestamp, tz=timezone.utc)
             current_time = datetime.now(timezone.utc)
             age = current_time - message_time
