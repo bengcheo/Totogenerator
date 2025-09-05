@@ -1,8 +1,11 @@
 import os
-from dotenv import load_dotenv
-
-# Load environment variables from .env file (for local development)
-load_dotenv()
+try:
+    # Load environment variables from .env file (for local development)
+    from dotenv import load_dotenv
+    load_dotenv()  #
+except ImportError:
+    # dotenv not available (like on GitHub), skip loading .env
+    pass
 
 class Config:
     """Configuration constants for TOTO system"""
