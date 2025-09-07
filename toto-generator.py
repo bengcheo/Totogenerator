@@ -15,9 +15,10 @@ class TotoGenerator:
         self.chat_id = Config.CHAT_ID
         self.api_url = Config.get_telegram_api_url()
 
-    def generate_toto_numbers(self):
+    def generate_toto_numbers(self, numbers_per_set = Config.NUMBERS_PER_SET):
         """Generate 6 unique random numbers from 1-49 for Singapore Toto"""
-        numbers = random.sample(range(1, 50), 6)
+        min_num, max_num = Config.NUMBER_RANGE
+        numbers = random.sample(range(min_num, max_num + 1), numbers_per_set)
         numbers.sort()
         return numbers
 

@@ -1,0 +1,38 @@
+name: TOTO Results Scraper
+
+on:
+  schedule:
+    # Monday at 9 PM SGT (1 PM UTC)
+    - cron: '0 13 * * 1'
+    # Thursday at 9 PM SGT (1 PM UTC)
+    - cron: '0 13 * * 4'
+    # Friday at 9 PM SGT (1 PM UTC)
+    - cron: '0 13 * * 5'
+
+  # Manual trigger from GitHub
+  workflow_dispatch:
+
+jobs:
+  scrape-toto-results:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        pip install requests beautifulsoup4 python-dotenv
+
+    - name: Run TOTO scraper
+      env:
+        TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      run: |
+        echo "Running TOTO results scraper..."
+        python toto-scraper.py
