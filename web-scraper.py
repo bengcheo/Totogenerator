@@ -2,10 +2,13 @@ import requests
 from bs4 import BeautifulSoup
 from datetime import datetime
 from config import Config
+import pytz
 
 url = Config.url
 headers = Config.headers
 response = requests.get(url, headers=headers)
+sg_tz = pytz.timezone('Asia/Singapore')
+current_sg_date = datetime.now(sg_tz).strftime("%Y-%m-%d")
 
 class ResultBot:
     def __init__(self):
@@ -22,7 +25,7 @@ class ResultBot:
         }
 
         try:
-            response = requests.post(f"https://api.telegram.org/bot{self.bot_token}/sendMessage", json=payload)
+            response = requests.post(f"{self.api_url}/sendMessage", json=payload)
             response.raise_for_status()
             return True
         except requests.RequestException as e:
@@ -33,7 +36,7 @@ class ResultBot:
         """Format the lottery results into a nice Telegram message"""
         message = f"""🎰 <b>Singapore TOTO Results</b> 🎰
 
-    📅 <b>Date:</b> {date}
+    📅 <b>Date:</b> {date.strftime("%Y-%m-%d")}
     🎲 <b>Winning Numbers:</b> {winning_numbers}
     ⭐ <b>Additional Number:</b> {additional_number}
 
@@ -69,10 +72,9 @@ class ResultBot:
                     latest_additional_number = additional_number
 
         # Output results
-        if latest_winning_numbers:
-            latest_date = latest_date.strftime('%Y-%m-%d')
+        if latest_winning_numbers  and current_sg_date == latest_date:
             latest_winning_numbers = latest_winning_numbers.replace(",", ", ")
-            print(f"Latest date: {latest_date}")
+            print(f"Latest date: {latest_date.strftime('%Y-%m-%d')}")
             print(f"Winning numbers: {latest_winning_numbers}")
             print(f"Additional number: {latest_additional_number}")
 

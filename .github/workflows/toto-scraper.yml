@@ -27,7 +27,7 @@ jobs:
 
     - name: Install dependencies
       run: |
-        pip install requests beautifulsoup4 python-dotenv
+        pip install requests beautifulsoup4 python-dotenv pytz
 
     - name: Run TOTO scraper
       env:
