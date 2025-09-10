@@ -2,12 +2,12 @@ name: TOTO Results Scraper
 
 on:
   schedule:
-    # Monday at 9 PM SGT (1 PM UTC)
-    - cron: '0 13 * * 1'
-    # Thursday at 9 PM SGT (1 PM UTC)
-    - cron: '0 13 * * 4'
-    # Friday at 9 PM SGT (1 PM UTC)
-    - cron: '0 13 * * 5'
+    # Monday at 10 PM SGT (2 PM UTC)
+    - cron: '0 14 * * 1'
+    # Thursday at 10 PM SGT (2 PM UTC)
+    - cron: '0 14 * * 4'
+    # Friday at 10 PM SGT (2 PM UTC)
+    - cron: '0 14 * * 5'
 
   # Manual trigger from GitHub
   workflow_dispatch:
