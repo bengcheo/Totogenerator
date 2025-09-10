@@ -39,7 +39,7 @@ class TotoGenerator:
             })
 
         return {
-            "date": datetime.now().strftime("%Y-%m-%d"),
+            "date": Config.CURRENT_DATE_TIME,
             "total_sets": count,
             "sets": sets
         }

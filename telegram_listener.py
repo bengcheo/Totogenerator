@@ -2,6 +2,7 @@ import requests
 import os
 import subprocess
 import sys
+import csv
 from datetime import datetime, timezone
 from config import Config
 
@@ -102,7 +103,48 @@ class TelegramListener:
             return 1 <= num <= 10
         return False
 
-    def run_toto_generator(self, sets_count):
+    def save_generated_numbers(self, numbers_set, user_id="Unknown", message_id=None):
+        """Save generated numbers to CSV file with user ID and message ID"""
+
+        file_exists = os.path.exists(Config.FILENAME)
+
+        with open(Config.FILENAME, 'a', newline='') as csvfile:
+            writer = csv.writer(csvfile)
+
+            if not file_exists:
+                writer.writerow([
+                    'date', 'user_id', 'message_id', 'generated_numbers'
+                ])
+
+            for numbers in numbers_set:
+                numbers_str = ','.join(map(str, numbers))
+                writer.writerow([
+                    Config.CURRENT_DATE_TIME,
+                    user_id,
+                    message_id,
+                    numbers_str
+                ])
+
+    def parse_generated_output(self, output):
+        """Parse the output from toto-generator.py to extract number sets"""
+        try:
+            generated_sets = []
+            lines = output.strip().split('\n')
+
+            for line in lines:
+                # Assuming toto-generator.py outputs lines like "Set 1: 3 - 10 - 23 - 30 - 35 - 48"
+                if 'Set' in line and ':' in line:
+                    numbers_part = line.split(':')[1].strip()
+                    # Extract numbers (assuming format like "3 - 10 - 23 - 30 - 35 - 48")
+                    numbers = [int(x.strip()) for x in numbers_part.split('-')]
+                    generated_sets.append(numbers)
+
+            return generated_sets
+        except Exception as e:
+            print(f"Error parsing generator output: {e}")
+            return []
+
+    def run_toto_generator(self, sets_count, user_id = None, message_id = None):
         """Run the toto-generator.py with the specified number of sets"""
         try:
             print(f"Running TOTO generator with {sets_count} sets...")
@@ -116,6 +158,12 @@ class TelegramListener:
 
             if result.returncode == 0:
                 print("TOTO generator completed successfully")
+                # If we have user info, also save to our tracking CSV
+                if user_id and message_id:
+                    # Parse the output from toto-generator.py to extract numbers
+                    generated_sets = self.parse_generated_output(result.stdout)
+                    if generated_sets:
+                        self.save_generated_numbers(generated_sets, user_id, message_id)
                 return True
             else:
                 print(f"TOTO generator failed: {result.stderr}")
@@ -153,7 +201,8 @@ class TelegramListener:
             message_id = message.get('message_id')
             message_date = message.get('date', 0)
             user = message.get('from', {})
-            user_name = user.get('first_name', 'User')
+            user_id = str(user.get('id', 'Unknown'))  # Get user ID instead of name
+            user_name = user.get('first_name', 'User')  # Keep for display purposes
 
             if not message_text:
                 continue
@@ -170,7 +219,7 @@ class TelegramListener:
                     reply_to_message_id=message_id
                 )
 
-                success = self.run_toto_generator(message_text)
+                success = self.run_toto_generator(message_text, user_id, message_id)
 
                 if success:
                     processed_any = True
