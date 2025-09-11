@@ -192,7 +192,13 @@ class TelegramListener:
                 'numbers': ','.join(map(str, numbers))
             }
 
-            requests.post(webhook_url, json=data)
+            try:
+                print(f"Sending data to Google Sheets: {data}")
+                response = requests.post(webhook_url, json=data)
+                print(f"Response status: {response.status_code}")
+                print(f"Response text: {response.text}")
+            except Exception as e:
+                print(f"Error saving to Google Sheets: {e}")
 
     def process_telegram_messages(self):
         """Main function - check for messages and respond"""
