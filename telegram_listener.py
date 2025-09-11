@@ -176,6 +176,18 @@ class TelegramListener:
             print(f"Error running TOTO generator: {e}")
             return False
 
+    def commit_csv_to_github(self):
+        """Commit the CSV file back to the repository"""
+        try:
+            os.system('git config --global user.email "action@github.com"')
+            os.system('git config --global user.name "GitHub Action Bot"')
+            os.system(f'git add {Config.FILENAME}')
+            os.system('git commit -m "Update TOTO generation history"')
+            os.system('git push')
+            print("CSV file committed to repository")
+        except Exception as e:
+            print(f"Error committing CSV: {e}")
+
     def process_telegram_messages(self):
         """Main function - check for messages and respond"""
         print("Checking for Telegram messages...")
@@ -224,6 +236,9 @@ class TelegramListener:
                 if success:
                     processed_any = True
                     print(f"Successfully processed request for {message_text} sets")
+
+                    # Commit any CSV updates to GitHub
+                    self.commit_csv_to_github()
                 else:
                     self.send_response(
                         "Sorry, there was an error generating your numbers. Please try again!",

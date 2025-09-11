@@ -116,7 +116,6 @@ class TotoGenerator:
 
         return True
 
-
 def main():
     """Main function - handles command line arguments"""
     if not os.getenv('TELEGRAM_BOT_TOKEN') or not os.getenv('TELEGRAM_CHAT_ID'):
