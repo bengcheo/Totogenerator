@@ -163,7 +163,11 @@ class TelegramListener:
                     # Parse the output from toto-generator.py to extract numbers
                     generated_sets = self.parse_generated_output(result.stdout)
                     if generated_sets:
+                        # Save to local CSV (optional backup)
                         self.save_generated_numbers(generated_sets, user_id, message_id)
+
+                        # Save to Google Sheets
+                        self.save_to_google_sheets(generated_sets, user_id, message_id)
                 return True
             else:
                 print(f"TOTO generator failed: {result.stderr}")
@@ -176,17 +180,19 @@ class TelegramListener:
             print(f"Error running TOTO generator: {e}")
             return False
 
-    def commit_csv_to_github(self):
+    def save_to_google_sheets(self, numbers_sets, user_id, message_id):
         """Commit the CSV file back to the repository"""
-        try:
-            os.system('git config --global user.email "action@github.com"')
-            os.system('git config --global user.name "GitHub Action Bot"')
-            os.system(f'git add {Config.FILENAME}')
-            os.system('git commit -m "Update TOTO generation history"')
-            os.system('git push')
-            print("CSV file committed to repository")
-        except Exception as e:
-            print(f"Error committing CSV: {e}")
+        webhook_url = Config.FILENAME_URL
+
+        for numbers in numbers_sets:
+            data = {
+                'date': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                'user_id': user_id,
+                'message_id': message_id,
+                'numbers': ','.join(map(str, numbers))
+            }
+
+            requests.post(webhook_url, json=data)
 
     def process_telegram_messages(self):
         """Main function - check for messages and respond"""
@@ -236,9 +242,6 @@ class TelegramListener:
                 if success:
                     processed_any = True
                     print(f"Successfully processed request for {message_text} sets")
-
-                    # Commit any CSV updates to GitHub
-                    self.commit_csv_to_github()
                 else:
                     self.send_response(
                         "Sorry, there was an error generating your numbers. Please try again!",
