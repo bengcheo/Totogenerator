@@ -3,6 +3,7 @@ import os
 import subprocess
 import sys
 import csv
+import json
 from datetime import datetime, timezone
 from config import Config
 
@@ -125,21 +126,49 @@ class TelegramListener:
                     numbers_str
                 ])
 
+    def save_to_google_sheets(self, numbers_sets, user_id, message_id):
+        """Commit the CSV file back to the repository"""
+        webhook_url = Config.FILENAME_URL
+
+        for numbers in numbers_sets:
+            data = {
+                'date': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                'user_id': user_id,
+                'message_id': message_id,
+                'numbers': ','.join(map(str, numbers))
+            }
+
+            try:
+                print(f"Sending data to Google Sheets: {data}")
+                response = requests.post(webhook_url, json=data)
+                print(f"Response status: {response.status_code}")
+                print(f"Response text: {response.text}")
+            except Exception as e:
+                print(f"Error saving to Google Sheets: {e}")
+
     def parse_generated_output(self, output):
-        """Parse the output from toto-generator.py to extract number sets"""
+        """Parse the JSON output from toto-generator.py to extract formatted strings"""
         try:
-            generated_sets = []
-            lines = output.strip().split('\n')
+            print(f"DEBUG: Parsing output: {output}")
 
-            for line in lines:
-                # Assuming toto-generator.py outputs lines like "Set 1: 3 - 10 - 23 - 30 - 35 - 48"
-                if 'Set' in line and ':' in line:
-                    numbers_part = line.split(':')[1].strip()
-                    # Extract numbers (assuming format like "3 - 10 - 23 - 30 - 35 - 48")
-                    numbers = [int(x.strip()) for x in numbers_part.split('-')]
-                    generated_sets.append(numbers)
+            # Parse the JSON output
+            data = json.loads(output)
 
-            return generated_sets
+            formatted_sets = []
+
+            # Extract the formatted strings from the JSON
+            if 'sets' in data:
+                for set_data in data['sets']:
+                    if 'formatted' in set_data:
+                        formatted_sets.append(set_data['formatted'])
+
+            print(f"DEBUG: Extracted formatted sets: {formatted_sets}")
+            return formatted_sets
+
+        except json.JSONDecodeError as e:
+            print(f"Error parsing JSON output: {e}")
+            print(f"Raw output was: {output}")
+            return []
         except Exception as e:
             print(f"Error parsing generator output: {e}")
             return []
@@ -162,6 +191,7 @@ class TelegramListener:
                 if user_id and message_id:
                     # Parse the output from toto-generator.py to extract numbers
                     generated_sets = self.parse_generated_output(result.stdout)
+                    print("The generated sets are: ", generated_sets)
                     if generated_sets:
                         # Save to local CSV (optional backup)
                         self.save_generated_numbers(generated_sets, user_id, message_id)
@@ -179,26 +209,6 @@ class TelegramListener:
         except Exception as e:
             print(f"Error running TOTO generator: {e}")
             return False
-
-    def save_to_google_sheets(self, numbers_sets, user_id, message_id):
-        """Commit the CSV file back to the repository"""
-        webhook_url = Config.FILENAME_URL
-
-        for numbers in numbers_sets:
-            data = {
-                'date': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-                'user_id': user_id,
-                'message_id': message_id,
-                'numbers': ','.join(map(str, numbers))
-            }
-
-            try:
-                print(f"Sending data to Google Sheets: {data}")
-                response = requests.post(webhook_url, json=data)
-                print(f"Response status: {response.status_code}")
-                print(f"Response text: {response.text}")
-            except Exception as e:
-                print(f"Error saving to Google Sheets: {e}")
 
     def process_telegram_messages(self):
         """Main function - check for messages and respond"""
