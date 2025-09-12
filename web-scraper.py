@@ -71,8 +71,9 @@ class ResultBot:
                     latest_winning_numbers = winning_numbers
                     latest_additional_number = additional_number
 
-        # Output results
-        if latest_winning_numbers  and current_sg_date == latest_date:
+        # Output result
+        if latest_winning_numbers:
+        #if latest_winning_numbers  and current_sg_date == latest_date:
             latest_winning_numbers = latest_winning_numbers.replace(",", ", ")
             print(f"Latest date: {latest_date.strftime('%Y-%m-%d')}")
             print(f"Winning numbers: {latest_winning_numbers}")
