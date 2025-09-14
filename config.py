@@ -1,4 +1,5 @@
 import os
+from datetime import datetime
 try:
     # Load environment variables from .env file (for local development)
     from dotenv import load_dotenv
@@ -21,6 +22,7 @@ class Config:
     TELEGRAM_TIMEOUT = 10
     MESSAGE_MAX_AGE_MINUTES = 30
     MESSAGE_LIMIT = 5
+    CURRENT_DATE_TIME = datetime.now().strftime("%Y-%m-%d")
 
     # TOTO settings
     MIN_SETS = 1
@@ -33,6 +35,7 @@ class Config:
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
     }
+    FILENAME_URL = "https://script.google.com/macros/s/AKfycbxXRy1vcj0h4jsrdXy8g6BzAx1Tb27Ihsq3kK-PUFiqZCPsTGq7H3HB7bReNMREcQC3vg/exec"
 
     @classmethod
     def get_telegram_api_url(cls):
