@@ -107,9 +107,9 @@ class TelegramListener:
     def save_generated_numbers(self, numbers_set, user_id="Unknown", message_id=None):
         """Save generated numbers to CSV file with user ID and message ID"""
 
-        file_exists = os.path.exists(Config.FILENAME)
+        file_exists = os.path.exists(Config.FILENAME_URL)
 
-        with open(Config.FILENAME, 'a', newline='') as csvfile:
+        with open(Config.FILENAME_URL, 'a', newline='') as csvfile:
             writer = csv.writer(csvfile)
 
             if not file_exists:
@@ -126,16 +126,16 @@ class TelegramListener:
                     numbers_str
                 ])
 
-    def save_to_google_sheets(self, numbers_sets, user_id, message_id):
-        """Commit the CSV file back to the repository"""
+    def save_to_google_sheets(self, formatted_sets, user_id, message_id):
+        """Save formatted number sets to Google Sheets"""
         webhook_url = Config.FILENAME_URL
 
-        for numbers in numbers_sets:
+        for formatted_numbers in formatted_sets:  # Changed variable name for clarity
             data = {
                 'date': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
                 'user_id': user_id,
                 'message_id': message_id,
-                'numbers': ','.join(map(str, numbers))
+                'numbers': formatted_numbers  # Use the formatted string directly
             }
 
             try:
@@ -147,27 +147,55 @@ class TelegramListener:
                 print(f"Error saving to Google Sheets: {e}")
 
     def parse_generated_output(self, output):
-        """Parse the JSON output from toto-generator.py to extract formatted strings"""
+        """Parse the output from toto-generator.py to extract formatted strings from embedded JSON"""
         try:
-            print(f"DEBUG: Parsing output: {output}")
+            print(f"DEBUG: Full output: {output}")
 
-            # Parse the JSON output
-            data = json.loads(output)
+            # Find the start of JSON after "Generated data:"
+            start_marker = "Generated data:"
+            start_pos = output.find(start_marker)
+
+            if start_pos == -1:
+                print("DEBUG: No 'Generated data:' marker found")
+                return []
+
+            # Find the JSON starting from after the marker
+            json_start = output.find('{', start_pos)
+            if json_start == -1:
+                print("DEBUG: No opening brace found")
+                return []
+
+            # Find the matching closing brace
+            brace_count = 0
+            json_end = json_start
+
+            for i in range(json_start, len(output)):
+                if output[i] == '{':
+                    brace_count += 1
+                elif output[i] == '}':
+                    brace_count -= 1
+                    if brace_count == 0:
+                        json_end = i + 1
+                        break
+
+            # Extract the complete JSON
+            json_text = output[json_start:json_end]
+            #print(f"DEBUG: Extracted JSON: {json_text}")
+
+            data = json.loads(json_text)
 
             formatted_sets = []
-
-            # Extract the formatted strings from the JSON
             if 'sets' in data:
                 for set_data in data['sets']:
                     if 'formatted' in set_data:
                         formatted_sets.append(set_data['formatted'])
 
-            print(f"DEBUG: Extracted formatted sets: {formatted_sets}")
+           # print(f"DEBUG: Extracted formatted sets: {formatted_sets}")
             return formatted_sets
 
         except json.JSONDecodeError as e:
-            print(f"Error parsing JSON output: {e}")
-            print(f"Raw output was: {output}")
+            print(f"Error parsing JSON: {e}")
+            print(f"Attempted to parse: {json_text if 'json_text' in locals() else 'No JSON extracted'}")
             return []
         except Exception as e:
             print(f"Error parsing generator output: {e}")
@@ -194,7 +222,7 @@ class TelegramListener:
                     print("The generated sets are: ", generated_sets)
                     if generated_sets:
                         # Save to local CSV (optional backup)
-                        self.save_generated_numbers(generated_sets, user_id, message_id)
+                    #    self.save_generated_numbers(generated_sets, user_id, message_id)
 
                         # Save to Google Sheets
                         self.save_to_google_sheets(generated_sets, user_id, message_id)
