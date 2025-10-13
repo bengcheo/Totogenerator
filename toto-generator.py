@@ -1,7 +1,5 @@
 import random
 import json
-from sys import setswitchinterval
-
 import requests
 import os
 import sys
