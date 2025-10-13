@@ -2,6 +2,7 @@ from datetime import datetime
 from config import Config
 import os
 import csv
+import requests
 
 def save_generated_numbers(numbers_set, user_id="Unknown", message_id=None):
     """Save generated numbers to CSV file with user ID and message ID"""
