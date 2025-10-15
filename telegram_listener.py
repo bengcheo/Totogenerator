@@ -135,6 +135,7 @@ class TelegramListener:
             if user_id and message_id:
                 formatted_sets = [set_data['formatted'] for set_data in result['sets']]
                 save_to_google_sheets(formatted_sets, user_id, message_id)
+                #print("saved to Google Sheet!")
 
             print("TOTO generation completed successfully")
             return True
