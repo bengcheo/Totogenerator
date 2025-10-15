@@ -2,10 +2,11 @@ import requests
 import os
 import subprocess
 import sys
-import csv
 import json
 from datetime import datetime, timezone
 from config import Config
+from save_file import save_to_google_sheets
+from toto_generator import TotoGenerator
 
 class TelegramListener:
     def __init__(self):
@@ -13,6 +14,7 @@ class TelegramListener:
         self.chat_id = Config.CHAT_ID
         self.api_url = Config.get_telegram_api_url()
         self.last_update_file = Config.LAST_UPDATE_FILE
+        self.generator = TotoGenerator()
 
     def get_last_update_id(self):
         """Get the last processed update ID"""
@@ -104,138 +106,42 @@ class TelegramListener:
             return 1 <= num <= 10
         return False
 
-    def save_generated_numbers(self, numbers_set, user_id="Unknown", message_id=None):
-        """Save generated numbers to CSV file with user ID and message ID"""
+    def format_telegram_message(self, toto_data):
+        """Format TOTO data as Telegram message"""
+        message = f"🎲 *Your TOTO Numbers*\n"
+        message += f"📅 Date: {toto_data['date']}\n"
+        message += f"🎯 Total Sets: {toto_data['total_sets']}\n\n"
 
-        file_exists = os.path.exists(Config.FILENAME_URL)
+        for set_data in toto_data['sets']:
+            message += f"*Set {set_data['set']}:* `{set_data['formatted']}`\n"
 
-        with open(Config.FILENAME_URL, 'a', newline='') as csvfile:
-            writer = csv.writer(csvfile)
+        output_txt = 'sets' if toto_data['total_sets'] > 1 else 'set'
+        message += f"\n🍀 Good luck with all {toto_data['total_sets']} {output_txt}!"
+        return message
 
-            if not file_exists:
-                writer.writerow([
-                    'date', 'user_id', 'message_id', 'generated_numbers'
-                ])
-
-            for numbers in numbers_set:
-                numbers_str = ','.join(map(str, numbers))
-                writer.writerow([
-                    Config.CURRENT_DATE_TIME,
-                    user_id,
-                    message_id,
-                    numbers_str
-                ])
-
-    def save_to_google_sheets(self, formatted_sets, user_id, message_id):
-        """Save formatted number sets to Google Sheets"""
-        webhook_url = Config.FILENAME_URL
-
-        for formatted_numbers in formatted_sets:  # Changed variable name for clarity
-            data = {
-                'date': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-                'user_id': user_id,
-                'message_id': message_id,
-                'numbers': formatted_numbers  # Use the formatted string directly
-            }
-
-            try:
-                print(f"Sending data to Google Sheets: {data}")
-                response = requests.post(webhook_url, json=data)
-                print(f"Response status: {response.status_code}")
-                print(f"Response text: {response.text}")
-            except Exception as e:
-                print(f"Error saving to Google Sheets: {e}")
-
-    def parse_generated_output(self, output):
-        """Parse the output from toto-generator.py to extract formatted strings from embedded JSON"""
+    def run_toto_generator(self, sets_count, user_id=None, message_id=None):
+        """Generate TOTO numbers and handle results"""
         try:
-            print(f"DEBUG: Full output: {output}")
+            print(f"Generating {sets_count} sets of TOTO numbers...")
 
-            # Find the start of JSON after "Generated data:"
-            start_marker = "Generated data:"
-            start_pos = output.find(start_marker)
+            # Generate numbers directly (no subprocess!)
+            result = self.generator.generate_multiple_sets(int(sets_count))
 
-            if start_pos == -1:
-                print("DEBUG: No 'Generated data:' marker found")
-                return []
+            # Format and send to Telegram
+            message = self.format_telegram_message(result)
+            self.send_response(message, reply_to_message_id=message_id)
 
-            # Find the JSON starting from after the marker
-            json_start = output.find('{', start_pos)
-            if json_start == -1:
-                print("DEBUG: No opening brace found")
-                return []
+            # Save to Google Sheets if we have user info
+            if user_id and message_id:
+                formatted_sets = [set_data['formatted'] for set_data in result['sets']]
+                save_to_google_sheets(formatted_sets, user_id, message_id)
+                #print("saved to Google Sheet!")
 
-            # Find the matching closing brace
-            brace_count = 0
-            json_end = json_start
+            print("TOTO generation completed successfully")
+            return True
 
-            for i in range(json_start, len(output)):
-                if output[i] == '{':
-                    brace_count += 1
-                elif output[i] == '}':
-                    brace_count -= 1
-                    if brace_count == 0:
-                        json_end = i + 1
-                        break
-
-            # Extract the complete JSON
-            json_text = output[json_start:json_end]
-            #print(f"DEBUG: Extracted JSON: {json_text}")
-
-            data = json.loads(json_text)
-
-            formatted_sets = []
-            if 'sets' in data:
-                for set_data in data['sets']:
-                    if 'formatted' in set_data:
-                        formatted_sets.append(set_data['formatted'])
-
-           # print(f"DEBUG: Extracted formatted sets: {formatted_sets}")
-            return formatted_sets
-
-        except json.JSONDecodeError as e:
-            print(f"Error parsing JSON: {e}")
-            print(f"Attempted to parse: {json_text if 'json_text' in locals() else 'No JSON extracted'}")
-            return []
         except Exception as e:
-            print(f"Error parsing generator output: {e}")
-            return []
-
-    def run_toto_generator(self, sets_count, user_id = None, message_id = None):
-        """Run the toto-generator.py with the specified number of sets"""
-        try:
-            print(f"Running TOTO generator with {sets_count} sets...")
-
-            result = subprocess.run(
-                ['python', 'toto-generator.py', sets_count],
-                capture_output=True,
-                text=True,
-                timeout=60
-            )
-
-            if result.returncode == 0:
-                print("TOTO generator completed successfully")
-                # If we have user info, also save to our tracking CSV
-                if user_id and message_id:
-                    # Parse the output from toto-generator.py to extract numbers
-                    generated_sets = self.parse_generated_output(result.stdout)
-                    print("The generated sets are: ", generated_sets)
-                    if generated_sets:
-                        # Save to local CSV (optional backup)
-                    #    self.save_generated_numbers(generated_sets, user_id, message_id)
-
-                        # Save to Google Sheets
-                        self.save_to_google_sheets(generated_sets, user_id, message_id)
-                return True
-            else:
-                print(f"TOTO generator failed: {result.stderr}")
-                return False
-
-        except subprocess.TimeoutExpired:
-            print("TOTO generator timed out")
-            return False
-        except Exception as e:
-            print(f"Error running TOTO generator: {e}")
+            print(f"Error generating TOTO numbers: {e}")
             return False
 
     def process_telegram_messages(self):
@@ -263,8 +169,8 @@ class TelegramListener:
             message_id = message.get('message_id')
             message_date = message.get('date', 0)
             user = message.get('from', {})
-            user_id = str(user.get('id', 'Unknown'))  # Get user ID instead of name
-            user_name = user.get('first_name', 'User')  # Keep for display purposes
+            user_id = str(user.get('id', 'Unknown'))
+            user_name = user.get('first_name', 'User')
 
             if not message_text:
                 continue
@@ -295,10 +201,10 @@ class TelegramListener:
                 help_text = """TOTO Generator Bot
 
 Send me a number from 1 to 10:
-• 1 → 1 set of numbers
-• 2 → 2 sets of numbers  
-• 3 → 3 sets of numbers
-• 4 → 4 sets of numbers
+- 1 → 1 set of numbers
+- 2 → 2 sets of numbers  
+- 3 → 3 sets of numbers
+- 4 → 4 sets of numbers
 ...and so on up to 10"""
 
                 self.send_response(help_text, reply_to_message_id=message_id)
@@ -313,12 +219,10 @@ def main():
         sys.exit(1)
 
     listener = TelegramListener()
-
     had_messages = listener.process_telegram_messages()
 
     if not had_messages:
         print("No TOTO requests found - doing nothing (check only mode)")
-        # NO fallback generation here
 
 
 if __name__ == "__main__":
