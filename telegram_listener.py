@@ -100,11 +100,9 @@ class TelegramListener:
 
     def is_valid_toto_request(self, message_text):
         """Check if message is a valid TOTO request (1-10)"""
-        text = message_text.strip()
-        if text.isdigit():
-            num = int(text)
-            return 1 <= num <= 10
-        return False
+        #text = message_text.strip()
+        num = self.generator.parse_user_input(message_text)
+        return num if 1 <= num < 10 else False
 
     def format_telegram_message(self, toto_data):
         """Format TOTO data as Telegram message"""
@@ -180,18 +178,20 @@ class TelegramListener:
                 continue
 
             print(f"New message from {user_name}: '{message_text}'")
-
-            if self.is_valid_toto_request(message_text):
+            
+            valid_number_of_picks = self.is_valid_toto_request(message_text)
+            
+            if valid_number_of_picks:
                 self.send_response(
-                    f"Got it! Generating {message_text} set{'s' if message_text != '1' else ''}...",
+                    f"Got it! Generating {valid_number_of_picks} set{'s' if message_text != '1' else ''}...",
                     reply_to_message_id=message_id
                 )
 
-                success = self.run_toto_generator(message_text, user_id, message_id)
+                success = self.run_toto_generator(valid_number_of_picks, user_id, message_id)
 
                 if success:
                     processed_any = True
-                    print(f"Successfully processed request for {message_text} sets")
+                    print(f"Successfully processed request for {valid_number_of_picks} sets")
                 else:
                     self.send_response(
                         "Sorry, there was an error generating your numbers. Please try again!",
