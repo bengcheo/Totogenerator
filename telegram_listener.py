@@ -99,14 +99,19 @@ class TelegramListener:
             return False
 
     def is_valid_toto_request(self, message_text):
-        """Check if message is a valid TOTO request (1-10)"""
-        #text = message_text.strip()
-        num = self.generator.parse_user_input(message_text)
-        return num if 1 <= num < 10 else False
+        """Check if message is a valid TOTO request.
+        Format: '<sets>' or '<sets> <numbers_per_set>'
+        Examples: '5' (5 sets, 6 numbers), '3 7' (3 sets, 7 numbers each)"""
+        result = self.generator.parse_user_input(message_text)
+        if result and 1 <= result['sets'] <= 10:
+            return result
+        return False
 
     def format_telegram_message(self, toto_data):
         """Format TOTO data as Telegram message"""
-        message = f"🎲 *Your TOTO Numbers*\n"
+        numbers_per_set = toto_data.get('numbers_per_set', 6)
+        system_type = "System 7" if numbers_per_set == 7 else "Standard"
+        message = f"🎲 *Your TOTO Numbers* ({system_type})\n"
         message += f"📅 Date: {toto_data['date']}\n"
         message += f"🎯 Total Sets: {toto_data['total_sets']}\n\n"
 
@@ -117,13 +122,13 @@ class TelegramListener:
         message += f"\n🍀 Good luck with all {toto_data['total_sets']} {output_txt}!"
         return message
 
-    def run_toto_generator(self, sets_count, user_id=None, message_id=None):
+    def run_toto_generator(self, sets_count, numbers_per_set=6, user_id=None, message_id=None):
         """Generate TOTO numbers and handle results"""
         try:
-            print(f"Generating {sets_count} sets of TOTO numbers...")
+            print(f"Generating {sets_count} sets of {numbers_per_set} TOTO numbers...")
 
             # Generate numbers directly (no subprocess!)
-            result = self.generator.generate_multiple_sets(int(sets_count))
+            result = self.generator.generate_multiple_sets(int(sets_count), int(numbers_per_set))
 
             # Format and send to Telegram
             message = self.format_telegram_message(result)
@@ -179,33 +184,43 @@ class TelegramListener:
 
             print(f"New message from {user_name}: '{message_text}'")
             
-            valid_number_of_picks = self.is_valid_toto_request(message_text)
+            valid_request = self.is_valid_toto_request(message_text)
             
-            if valid_number_of_picks:
+            if valid_request:
+                sets_count = valid_request['sets']
+                numbers_per_set = valid_request['numbers_per_set']
+                num_word = "set" if sets_count == 1 else "sets"
+                num_word2 = "number" if numbers_per_set == 6 else "numbers"
+                
                 self.send_response(
-                    f"Got it! Generating {valid_number_of_picks} set{'s' if message_text != '1' else ''}...",
+                    f"Got it! Generating {sets_count} {num_word} with {numbers_per_set} {num_word2} each...",
                     reply_to_message_id=message_id
                 )
 
-                success = self.run_toto_generator(valid_number_of_picks, user_id, message_id)
+                success = self.run_toto_generator(sets_count, numbers_per_set, user_id, message_id)
 
                 if success:
                     processed_any = True
-                    print(f"Successfully processed request for {valid_number_of_picks} sets")
+                    print(f"Successfully processed request for {sets_count} sets of {numbers_per_set} numbers")
                 else:
                     self.send_response(
                         "Sorry, there was an error generating your numbers. Please try again!",
                         reply_to_message_id=message_id
                     )
             else:
-                help_text = """TOTO Generator Bot
+                help_text = """🎲 *TOTO Generator Bot*
 
-Send me a number from 1 to 10:
-- 1 → 1 set of numbers
-- 2 → 2 sets of numbers  
-- 3 → 3 sets of numbers
-- 4 → 4 sets of numbers
-...and so on up to 10"""
+Send me a request in this format:
+\`<sets\>` or \`<sets\> \<6|7\>\`
+
+*Examples:*
+- \`1\` → 1 set of 6 numbers (standard)
+- \`3\` → 3 sets of 6 numbers
+- \`2 7\` → 2 sets of 7 numbers (System 7)
+- \`5 7\` → 5 sets of 7 numbers
+
+\`<sets\>`: 1-10 (how many sets)
+\`<6|7\>`: 6 or 7 numbers per set (optional, default: 6)"""
 
                 self.send_response(help_text, reply_to_message_id=message_id)
 
