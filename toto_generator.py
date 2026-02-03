@@ -11,7 +11,7 @@ class TotoGenerator:
         pass  # No longer needs Telegram credentials here
 
     def generate_toto_numbers(self, numbers_per_set=Config.NUMBERS_PER_SET):
-        """Generate 6 unique random numbers from 1-49 for Singapore Toto"""
+        """Generate unique random numbers from 1-49 for Singapore Toto"""
         min_num, max_num = Config.NUMBER_RANGE
         numbers = random.sample(range(min_num, max_num + 1), numbers_per_set)
         numbers.sort()
@@ -38,9 +38,9 @@ class TotoGenerator:
             })
 
         return {
-            "date": datetime.now().strftime('%Y-%m-%d'),
             "total_sets": count,
             "numbers_per_set": numbers_per_set,
+            "date": datetime.now().strftime("%Y-%m-%d"),
             "sets": sets
         }
         
@@ -70,7 +70,7 @@ class TotoGenerator:
             try:
                 sets = int(parts[0])
                 numbers_per_set = int(parts[1])
-                if 1 <= sets <= 10 and numbers_per_set in [6, 7]:
+                if 1 <= sets <= 10 and numbers_per_set in [6,7,8]:
                     return {'sets': sets, 'numbers_per_set': numbers_per_set}
             except ValueError:
                 pass
@@ -83,14 +83,15 @@ def main():
     
     text = toto_generator.user_input_test()
     
-    parsed_number = toto_generator.parse_user_input(text)
-    print("Numbers parsed: ", parsed_number)
+    parsed_numbers = toto_generator.parse_user_input(text)
+    number_of_sets = list(parsed_numbers.values())[0]
+    numbers_per_set = list(parsed_numbers.values())[1]
     
-    single_set = toto_generator.generate_toto_numbers()
-    #print("Single Set Generated:", single_set)
-    
-    multi_set = toto_generator.generate_multiple_sets()
-    #print("Multiple Sets Generated:", multi_set)
+    print("Numbers parsed: ", number_of_sets)
+    print("Numbers per set parsed: ", numbers_per_set)
+        
+    multi_set = toto_generator.generate_multiple_sets(number_of_sets, numbers_per_set)
+    print(multi_set)
 
 
 if __name__ == "__main__":
