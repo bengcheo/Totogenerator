@@ -42,7 +42,7 @@ jobs:
           python main.py "${{ inputs.sets }}"
         elif [ "${{ github.event.schedule }}" = "0 4 * * *" ]; then
           echo "Daily 12 PM SGT: generating standard 1 set"
-          python main.py 1
+          python main.py
         else
           echo "15-minute check: looking for Telegram messages only"
           python telegram_listener.py
