@@ -12,8 +12,7 @@ on:
     inputs:
       sets:
         description: 'Number of TOTO sets'
-        required: true
-        default: '1'
+        required: false
         type: string
 
 jobs:
