@@ -37,8 +37,13 @@ jobs:
         TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
       run: |
         if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-          echo "Manual trigger: generating ${{ inputs.sets }} sets"
-          python main.py "${{ inputs.sets }}"
+          if [ -n "${{ inputs.sets }}" ]; then
+            echo "Manual trigger: generating ${{ inputs.sets }} sets"
+            python main.py "${{ inputs.sets }}"
+          else
+            echo "Manual trigger: generating default 1 set"
+            python main.py
+          fi
         elif [ "${{ github.event.schedule }}" = "0 4 * * *" ]; then
           echo "Daily 12 PM SGT: generating standard 1 set"
           python main.py
